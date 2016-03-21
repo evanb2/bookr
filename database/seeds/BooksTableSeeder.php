@@ -3,7 +3,6 @@
 
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Eloquent\Model;
 
 class BooksTableSeeder extends Seeder
 {
@@ -17,7 +16,7 @@ class BooksTableSeeder extends Seeder
     {
         DB::table('books')->insert([
             'title'       => 'War of the Worlds',
-            'description' => 'A science ficiton masterpiece about Martians invading London',
+            'description' => 'A science fiction masterpiece about Martians invading London',
             'author'      => 'H. G. Wells',
             'created_at'  => Carbon::now(),
             'updated_at'  => Carbon::now()
@@ -27,7 +26,7 @@ class BooksTableSeeder extends Seeder
             'title'       => 'A Wrinkle in Time',
             'description' => 'A young girl goes on a mission to save her father who has gone missing after working on a mysterious project called tesseract.',
             'author'      => 'Madeleine L\'Engle',
-            'create_at'   => Carbon::now(),
+            'created_at'  => Carbon::now(),
             'updated_at'  => Carbon::now()
         ]);
     }
