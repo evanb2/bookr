@@ -11,15 +11,47 @@ class BooksControllerTest extends TestCase
         $this->get('/books')->seeStatusCode(200);
     }
 
-    /** @test */
-    public function indexShouldReturnACollectionOfRecords()
+    public function testIndexShouldReturnACollectionOfRecords()
     {
         $this->get('/books')
-             ->seeJson([
-                 'title' => 'War of the Worlds'
-             ])
+            ->seeJson([
+                'title' => 'War of the Worlds'
+            ])
             ->seeJson([
                 'title' => 'A Wrinkle in Time'
             ]);
+    }
+
+    public function testShowBooksReturnsValidBook()
+    {
+        $this->get('/books/1')
+            ->seeStatusCode(200)
+            ->seeJson([
+                'id'          => 1,
+                'title'       => 'War of the Worlds',
+                'description' => 'A science fiction masterpiece about Martians invading London'
+            ]);
+
+        $data = json_decode($this->response->getContent(), TRUE);
+        $this->assertArrayHasKey('created_at', $data);
+        $this->assertArrayHasKey('updated_at', $data);
+    }
+
+    public function testShowBooksFailsWithoutBookId()
+    {
+        $this->get('/books/99999')
+             ->seeStatusCode(404)
+             ->seeJson([
+                 'error' => [
+                     'message' => 'Book not found'
+                 ]
+             ]);
+    }
+
+    public function testShowRouteShouldNotMatchAnInvalidRoute()
+    {
+        $this->get('/books/this-is-invalid');
+
+        $this->assertNotRegExp('/Book not found/', $this->response->getContent(), 'BooksController@show route matching when it should not.');
     }
 }
