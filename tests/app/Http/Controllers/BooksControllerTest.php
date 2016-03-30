@@ -40,12 +40,12 @@ class BooksControllerTest extends TestCase
     public function testShowBooksFailsWithoutBookId()
     {
         $this->get('/books/99999')
-             ->seeStatusCode(404)
-             ->seeJson([
-                 'error' => [
-                     'message' => 'Book not found'
-                 ]
-             ]);
+            ->seeStatusCode(404)
+            ->seeJson([
+                'error' => [
+                    'message' => 'Book not found'
+                ]
+            ]);
     }
 
     public function testShowRouteShouldNotMatchAnInvalidRoute()
@@ -53,5 +53,28 @@ class BooksControllerTest extends TestCase
         $this->get('/books/this-is-invalid');
 
         $this->assertNotRegExp('/Book not found/', $this->response->getContent(), 'BooksController@show route matching when it should not.');
+    }
+
+    public function testStoreShouldSaveNewBook()
+    {
+        $this->post('/books', [
+            'title'       => 'The Invisible Man',
+            'description' => 'An invisible man is trapped in the terror of his own creation.',
+            'author'      => 'H. G. Wells'
+        ]);
+
+        $this->seeJson(['created' => TRUE])
+            ->seeInDatabase('books', ['title' => 'The Invisible Man']);
+    }
+
+    public function testStoreShouldRespondWith201AndLocationHeaderOnSuccess()
+    {
+        $this->post('/books', [
+            'title'       => 'The Invisible Man',
+            'description' => 'An invisible man is trapped in the terror of his own creation.',
+            'author'      => 'H. G. Wells'
+        ]);
+
+        $this->seeStatusCode(201)->seeHeaderWithRegExp('Location', '#/books/[\d]+$#');
     }
 }
