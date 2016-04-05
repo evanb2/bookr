@@ -118,4 +118,29 @@ class BooksControllerTest extends TestCase
     {
         $this->put('/books/this-is-invalid')->seeStatusCode(404);
     }
+
+    public function testDestroyShouldRemoveAValidBook()
+    {
+        $this->delete('/books/1')
+             ->seeStatusCode(204)
+             ->isEmpty();
+
+        $this->notSeeInDatabase('books', ['id' => 1]);
+    }
+
+    public function testDestroyShouldReturn404WithInvalidId()
+    {
+        $this->delete('/books/99999')
+             ->seeStatusCode(404)
+             ->seeJsonEquals([
+                 'error' => [
+                     'message' => 'Book not found'
+                 ]
+             ]);
+    }
+
+    public function testDestroyShouldNotMatchAnInvalidRoute()
+    {
+        $this->delete('/books/this-is-invalid')->seeStatusCode(404);
+    }
 }

@@ -54,4 +54,21 @@ class BooksController
 
         return $book;
     }
+
+    public function destroy($id)
+    {
+        try {
+            $book = Book::findOrFail($id);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => [
+                    'message' => 'Book not found'
+                ]
+            ], 404);
+        }
+        
+        $book->delete();
+
+        return response(null, 204);
+    }
 }

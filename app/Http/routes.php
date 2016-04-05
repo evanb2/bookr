@@ -25,3 +25,5 @@ $app->get('/books/{id:[\d]+}', [
 $app->post('/books', 'BooksController@store');
 
 $app->put('/books/{id:[\d]+}', 'BooksController@update');
+
+$app->delete('/books/{id:[\d]+}', 'BooksController@destroy');
