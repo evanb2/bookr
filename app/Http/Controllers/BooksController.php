@@ -66,7 +66,7 @@ class BooksController
                 ]
             ], 404);
         }
-        
+
         $book->delete();
 
         return response(null, 204);

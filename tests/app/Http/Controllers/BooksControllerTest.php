@@ -2,10 +2,13 @@
 
 namespace Tests\App\Http\Controllers;
 
+use Laravel\Lumen\Testing\DatabaseMigrations;
 use TestCase;
 
 class BooksControllerTest extends TestCase
 {
+    use DatabaseMigrations;
+
     public function testGetBooks()
     {
         $this->get('/books')->seeStatusCode(200);
@@ -13,23 +16,27 @@ class BooksControllerTest extends TestCase
 
     public function testIndexShouldReturnACollectionOfRecords()
     {
-        $this->get('/books')
-            ->seeJson([
-                'title' => 'War of the Worlds'
-            ])
-            ->seeJson([
-                'title' => 'A Wrinkle in Time'
-            ]);
+        $books = factory('App\Book', 2)->create();
+
+        $this->get('/books');
+
+        foreach ($books as $book) {
+            $this->seeJson(['title' => $book->title]);
+        }
     }
 
     public function testShowBooksReturnsValidBook()
     {
-        $this->get('/books/1')
+        $book = factory('App\Book')->create();
+
+        //must use double quotes
+        $this->get("/books/{$book->id}")
             ->seeStatusCode(200)
             ->seeJson([
-                'id'          => 1,
-                'title'       => 'War of the Worlds',
-                'description' => 'A science fiction masterpiece about Martians invading London'
+                'id'          => $book->id,
+                'title'       => $book->title,
+                'description' => $book->description,
+                'author'      => $book->author
             ]);
 
         $data = json_decode($this->response->getContent(), TRUE);
@@ -80,38 +87,40 @@ class BooksControllerTest extends TestCase
 
     public function testUpdateShouldOnlyChangeFillableFields()
     {
-        $this->notSeeInDatabase('books', [
-            'title' => 'The War of The Worlds'
+        $book = factory('App\Book')->create([
+            'title'       => 'War of the Worlds',
+            'description' => 'A science fiction masterpiece about Martians invading London',
+            'author'      => 'H. G. Wells'
         ]);
 
-        $this->put('/books/1', [
-            'id' => 5,
-            'title' => 'The War of The Worlds',
+        $this->put("/books/{$book->id}", [
+            'id'          => 5,
+            'title'       => 'The War of The Worlds',
             'description' => 'The book is way better than the movie.',
-            'author' => 'Wells, H.G.'
+            'author'      => 'Wells, H.G.'
         ]);
 
         $this->seeStatusCode(200)
-             ->seeJson([
-                 'id' => 1,
-                 'title' => 'The War of The Worlds',
-                 'description' => 'The book is way better than the movie.',
-                 'author' => 'Wells, H.G.'
-             ])
-             ->seeInDatabase('books', [
-                 'title' => 'The War of The Worlds'
-             ]);
+            ->seeJson([
+                'id'          => 1,
+                'title'       => 'The War of The Worlds',
+                'description' => 'The book is way better than the movie.',
+                'author'      => 'Wells, H.G.'
+            ])
+            ->seeInDatabase('books', [
+                'title' => 'The War of The Worlds'
+            ]);
     }
 
     public function testUpdateShouldFailWithAnInvalidId()
     {
         $this->put('/books/99999999999')
-             ->seeStatusCode(404)
-             ->seeJsonEquals([
-                 'error' => [
-                     'message' => 'Book not found'
-                 ]
-             ]);
+            ->seeStatusCode(404)
+            ->seeJsonEquals([
+                'error' => [
+                    'message' => 'Book not found'
+                ]
+            ]);
     }
 
     public function testUpdateShouldNotMatchAnInvalidRoute()
@@ -121,22 +130,23 @@ class BooksControllerTest extends TestCase
 
     public function testDestroyShouldRemoveAValidBook()
     {
-        $this->delete('/books/1')
-             ->seeStatusCode(204)
-             ->isEmpty();
+        $book = factory('App\Book')->create();
+        $this->delete("/books/{$book->id}")
+            ->seeStatusCode(204)
+            ->isEmpty();
 
-        $this->notSeeInDatabase('books', ['id' => 1]);
+        $this->notSeeInDatabase('books', ['id' => $book->id]);
     }
 
     public function testDestroyShouldReturn404WithInvalidId()
     {
         $this->delete('/books/99999')
-             ->seeStatusCode(404)
-             ->seeJsonEquals([
-                 'error' => [
-                     'message' => 'Book not found'
-                 ]
-             ]);
+            ->seeStatusCode(404)
+            ->seeJsonEquals([
+                'error' => [
+                    'message' => 'Book not found'
+                ]
+            ]);
     }
 
     public function testDestroyShouldNotMatchAnInvalidRoute()
