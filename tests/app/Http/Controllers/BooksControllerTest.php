@@ -31,13 +31,13 @@ class BooksControllerTest extends TestCase
 
         //must use double quotes
         $this->get("/books/{$book->id}")
-            ->seeStatusCode(200)
-            ->seeJson([
-                'id'          => $book->id,
-                'title'       => $book->title,
-                'description' => $book->description,
-                'author'      => $book->author
-            ]);
+             ->seeStatusCode(200)
+             ->seeJson([
+                 'id'          => $book->id,
+                 'title'       => $book->title,
+                 'description' => $book->description,
+                 'author'      => $book->author
+             ]);
 
         $data = json_decode($this->response->getContent(), TRUE);
         $this->assertArrayHasKey('created_at', $data);
@@ -46,13 +46,13 @@ class BooksControllerTest extends TestCase
 
     public function testShowBooksFailsWithoutBookId()
     {
-        $this->get('/books/99999')
-            ->seeStatusCode(404)
-            ->seeJson([
-                'error' => [
-                    'message' => 'Book not found'
-                ]
-            ]);
+        $this->get('/books/99999', ['Accept' => 'application/json'])
+             ->seeStatusCode(404)
+             ->seeJson([
+                 'error' => [
+                     'message' => 'Book not found'
+                 ]
+             ]);
     }
 
     public function testShowRouteShouldNotMatchAnInvalidRoute()

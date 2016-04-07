@@ -1,7 +1,12 @@
 <?php
 
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+
 class TestCase extends Laravel\Lumen\Testing\TestCase
 {
+    //make expectations count as assertions in PHPUnit
+    use MockeryPHPUnitIntegration;
+
     /**
      * Creates the application.
      *
