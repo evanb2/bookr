@@ -10,15 +10,26 @@ use Illuminate\Http\Request;
 
 class BooksController
 {
+    /**
+     * @return array
+     */
     public function index()
     {
-        return Book::all();
+        return [
+            'data' => Book::all()->toArray()
+        ];
     }
 
+    /**
+     * @param $id
+     * @return array|\Symfony\Component\HttpFoundation\Response
+     */
     public function show($id)
     {
         try {
-            return Book::findorFail($id);
+            return [
+                'data' => Book::findOrFail($id)->toArray()
+            ];
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'error' => [
@@ -28,15 +39,24 @@ class BooksController
         }
     }
 
+    /**
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function store(Request $request)
     {
         $book = Book::create($request->all());
 
-        return response()->json(['created' => TRUE], 201, [
-            'Location' => route('books.show', ['id' => $book->id])
-        ]);
+        return response()->json(['data' => $book->toArray()], 201, [
+                'Location' => route('books.show', ['id' => $book->id])
+            ]);
     }
 
+    /**
+     * @param Request $request
+     * @param $id
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function update(Request $request, $id)
     {
         try {
@@ -55,6 +75,10 @@ class BooksController
         return $book;
     }
 
+    /**
+     * @param $id
+     * @return \Laravel\Lumen\Http\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     */
     public function destroy($id)
     {
         try {
@@ -69,6 +93,6 @@ class BooksController
 
         $book->delete();
 
-        return response(null, 204);
+        return response(NULL, 204);
     }
 }

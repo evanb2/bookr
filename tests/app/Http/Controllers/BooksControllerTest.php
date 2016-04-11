@@ -20,28 +20,22 @@ class BooksControllerTest extends TestCase
 
         $this->get('/books');
 
-        foreach ($books as $book) {
-            $this->seeJson(['title' => $book->title]);
-        }
+        $expected = [
+            'data' => $books->toArray()
+        ];
+
+        $this->seeJsonEquals($expected);
     }
 
     public function testShowBooksReturnsValidBook()
     {
         $book = factory('App\Book')->create();
+        $expected = [
+            'data' => $book->toArray()
+        ];
 
         //must use double quotes
-        $this->get("/books/{$book->id}")
-             ->seeStatusCode(200)
-             ->seeJson([
-                 'id'          => $book->id,
-                 'title'       => $book->title,
-                 'description' => $book->description,
-                 'author'      => $book->author
-             ]);
-
-        $data = json_decode($this->response->getContent(), TRUE);
-        $this->assertArrayHasKey('created_at', $data);
-        $this->assertArrayHasKey('updated_at', $data);
+        $this->get("/books/{$book->id}")->seeStatusCode(200)->seeJsonEquals($expected);
     }
 
     public function testShowBooksFailsWithoutBookId()
@@ -70,8 +64,15 @@ class BooksControllerTest extends TestCase
             'author'      => 'H. G. Wells'
         ]);
 
-        $this->seeJson(['created' => TRUE])
-            ->seeInDatabase('books', ['title' => 'The Invisible Man']);
+        $body = json_decode($this->response->getContent(), TRUE);
+        $this->assertArrayHasKey('data', $body);
+
+        $data = $body['data'];
+        $this->assertEquals('The Invisible Man', $data['title']);
+        $this->assertEquals('An invisible man is trapped in the terror of his own creation.', $data['description']);
+        $this->assertEquals('H. G. Wells', $data['author']);
+        $this->assertTrue($data['id'] > 0, 'Expected a positive integer, but did not see one.');
+        $this->seeInDatabase('books', ['title' => 'The Invisible Man']);
     }
 
     public function testStoreShouldRespondWith201AndLocationHeaderOnSuccess()
