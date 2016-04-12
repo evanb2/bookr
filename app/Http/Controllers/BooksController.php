@@ -55,7 +55,7 @@ class BooksController
     /**
      * @param Request $request
      * @param $id
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @return mixed
      */
     public function update(Request $request, $id)
     {
@@ -72,7 +72,7 @@ class BooksController
         $book->fill($request->all());
         $book->save();
 
-        return $book;
+        return ['data' => $book->toArray()];
     }
 
     /**

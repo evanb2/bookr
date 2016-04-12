@@ -41,12 +41,12 @@ class BooksControllerTest extends TestCase
     public function testShowBooksFailsWithoutBookId()
     {
         $this->get('/books/99999', ['Accept' => 'application/json'])
-             ->seeStatusCode(404)
-             ->seeJson([
-                 'error' => [
-                     'message' => 'Book not found'
-                 ]
-             ]);
+            ->seeStatusCode(404)
+            ->seeJson([
+                'error' => [
+                    'message' => 'Book not found'
+                ]
+            ]);
     }
 
     public function testShowRouteShouldNotMatchAnInvalidRoute()
@@ -94,6 +94,12 @@ class BooksControllerTest extends TestCase
             'author'      => 'H. G. Wells'
         ]);
 
+        $this->notSeeInDatabase('books', [
+            'title'       => 'The War of the Worlds',
+            'description' => 'A science ficiton masterpiece about Martians invading London',
+            'author'      => 'H. G. Wells'
+        ]);
+
         $this->put("/books/{$book->id}", [
             'id'          => 5,
             'title'       => 'The War of The Worlds',
@@ -111,6 +117,9 @@ class BooksControllerTest extends TestCase
             ->seeInDatabase('books', [
                 'title' => 'The War of The Worlds'
             ]);
+
+        $body = json_decode($this->response->getContent(), TRUE);
+        $this->assertArrayHasKey('data', $body);
     }
 
     public function testUpdateShouldFailWithAnInvalidId()
