@@ -5,19 +5,18 @@ namespace App\Http\Controllers;
 
 
 use App\Book;
+use App\Transformer\BookTransformer;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
-class BooksController
+class BooksController extends Controller
 {
     /**
      * @return array
      */
     public function index()
     {
-        return [
-            'data' => Book::all()->toArray()
-        ];
+        return $this->collection(Book::all(), new BookTransformer());
     }
 
     /**
