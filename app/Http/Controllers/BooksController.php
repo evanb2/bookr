@@ -26,9 +26,7 @@ class BooksController extends Controller
     public function show($id)
     {
         try {
-            return [
-                'data' => Book::findOrFail($id)->toArray()
-            ];
+            return $this->item(Book::findOrFail($id), new BookTransformer());
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'error' => [
@@ -45,10 +43,11 @@ class BooksController extends Controller
     public function store(Request $request)
     {
         $book = Book::create($request->all());
+        $data = $this->item($book, new BookTransformer());
 
-        return response()->json(['data' => $book->toArray()], 201, [
-                'Location' => route('books.show', ['id' => $book->id])
-            ]);
+        return response()->json($data, 201, [
+            'Location' => route('books.show', ['id' => $book->id])
+        ]);
     }
 
     /**
@@ -71,7 +70,7 @@ class BooksController extends Controller
         $book->fill($request->all());
         $book->save();
 
-        return ['data' => $book->toArray()];
+        return $this->item($book, new BookTransformer());
     }
 
     /**

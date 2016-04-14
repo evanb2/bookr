@@ -2,12 +2,27 @@
 
 namespace Tests\App\Http\Controllers;
 
+use Carbon\Carbon;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use TestCase;
 
 class BooksControllerTest extends TestCase
 {
     use DatabaseMigrations;
+
+    public function setUp()
+    {
+        parent::setUp();
+
+        Carbon::setTestNow(Carbon::now('UTC'));
+    }
+
+    public function tearDown()
+    {
+        parent::tearDown();
+
+        Carbon::setTestNow();
+    }
 
     public function testGetBooks()
     {
@@ -38,12 +53,22 @@ class BooksControllerTest extends TestCase
     public function testShowBooksReturnsValidBook()
     {
         $book = factory('App\Book')->create();
-        $expected = [
-            'data' => $book->toArray()
-        ];
 
-        //must use double quotes
-        $this->get("/books/{$book->id}")->seeStatusCode(200)->seeJsonEquals($expected);
+        $this->get("/books/{$book->id}")
+             ->seeStatusCode(200);
+
+        //Get the response and assert the data key exists
+        $content = json_decode($this->response->getContent(), TRUE);
+        $this->assertArrayHasKey('data', $content);
+        $data = $content['data'];
+
+        //Assert the Book properties match
+        $this->assertEquals($book->id, $data['id']);
+        $this->assertEquals($book->title, $data['title']);
+        $this->assertEquals($book->description, $data['description']);
+        $this->assertEquals($book->author, $data['author']);
+        $this->assertEquals($book->created_at->toIso8601String(), $data['created']);
+        $this->assertEquals($book->updated_at->toIso8601String(), $data['updated']);
     }
 
     public function testShowBooksFailsWithoutBookId()
@@ -81,6 +106,10 @@ class BooksControllerTest extends TestCase
         $this->assertEquals('H. G. Wells', $data['author']);
         $this->assertTrue($data['id'] > 0, 'Expected a positive integer, but did not see one.');
         $this->seeInDatabase('books', ['title' => 'The Invisible Man']);
+        $this->assertArrayHasKey('created', $data);
+        $this->assertEquals(Carbon::now()->toIso8601String(), $data['created']);
+        $this->assertArrayHasKey('updated', $data);
+        $this->assertEquals(Carbon::now()->toIso8601String(), $data['updated']);
     }
 
     public function testStoreShouldRespondWith201AndLocationHeaderOnSuccess()
@@ -128,6 +157,12 @@ class BooksControllerTest extends TestCase
 
         $body = json_decode($this->response->getContent(), TRUE);
         $this->assertArrayHasKey('data', $body);
+
+        $data = $body['data'];
+        $this->assertArrayHasKey('created', $data);
+        $this->assertEquals(Carbon::now()->toIso8601String(), $data['created']);
+        $this->assertArrayHasKey('updated', $data);
+        $this->assertEquals(Carbon::now()->toIso8601String(), $data['updated']);
     }
 
     public function testUpdateShouldFailWithAnInvalidId()
